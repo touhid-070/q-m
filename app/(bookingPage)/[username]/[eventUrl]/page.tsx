@@ -1,3 +1,5 @@
+import { Calendar } from "@/app/components/bookingForm/Calendar";
+import { RenderCalendar } from "@/app/components/bookingForm/RenderCalender";
 import prisma from "@/app/lib/db";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -41,12 +43,20 @@ async function getData(eventUrl: string, userName: string) {
     return data;
 }
 
-export default async function BookingFormRoute({ params }: { params: { username: string; eventUrl: string } }) {
+export default async function BookingFormRoute({ params ,searchParams, }: { params: { username: string; eventUrl: string };
+searchParams: {date?:string}
+}) {
     const data = await getData(params.eventUrl,params.username);
+    const selectedDate = searchParams.date? new Date(searchParams.date): new Date();
+    const formattedDate = new Intl.DateTimeFormat("dl-IN",{
+        weekday: 'long',
+        day : 'numeric',
+        month: 'long',
+    }).format(selectedDate)
     return (
         <div className="min-h-screen w-screen flex items-center justify-center">
             <Card className="max-w-[1000px] w-full mx-auto">
-                <CardContent className="p-5 md:grid md:grid-cols-[1fr,auto,1fr,auto,1fr]">
+                <CardContent className="p-5 md:grid md:grid-cols-[1fr,auto,1fr,auto,1fr] gap-4">
                     <div>
                         <img src={data.User?.image as string} alt="Profile Image of user" className="size-10 rounded-full"/>
                         <p className="text-sm font-medium text-muted-foreground mt-1">{data.User?.name}</p>
@@ -55,7 +65,7 @@ export default async function BookingFormRoute({ params }: { params: { username:
                         <div className="mt-5 flex flex-col gap-y-3">
                             <p className="flex items-center ">
                                 <CalendarX2 className="size-4 mr-2 text-primary"/>
-                                <span className="text-sm font-medium text-muted-foreground">24. Oct 2024</span>
+                                <span className="text-sm font-medium text-muted-foreground">{formattedDate}</span>
                             </p>
 
                             <p className="flex items-center ">
@@ -72,6 +82,8 @@ export default async function BookingFormRoute({ params }: { params: { username:
 
                     <Separator orientation="vertical" className="h-full w-[1px]"/>
 
+                    <RenderCalendar availability={data.User?.availability as any}/>
+                    <Separator orientation="vertical" className="h-full w-[1px]"/>
                 </CardContent>
             </Card>
         </div>
